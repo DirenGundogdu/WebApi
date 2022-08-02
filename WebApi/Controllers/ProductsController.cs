@@ -1,11 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using WebApi.Data;
 using WebApi.Interfaces;
 
 namespace WebApi.Controllers
 {
+    [EnableCors]
     [ApiController]
     [Route("api/[controller]")]
     public class ProductsController : ControllerBase
@@ -61,6 +66,26 @@ namespace WebApi.Controllers
             }
             await _productRepository.DeleteAsync(id);
             return NoContent();
+        }
+
+        [HttpPost("upload")]
+        public async Task<IActionResult> Upload(IFormFile formFile)
+        {
+            var newName = Guid.NewGuid() + "." + Path.GetExtension(formFile.FileName);
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", newName);
+            var stream = new FileStream(path, FileMode.Create);
+            await formFile.CopyToAsync(stream);
+            return Created(string.Empty, formFile);
+        }
+
+        [HttpGet("[action]")]
+        public IActionResult Test([FromForm] string name, [FromHeader] string auth)
+        {
+            var authentication = HttpContext.Request.Headers["auth"];
+
+            var name2 = HttpContext.Request.Form["name"];
+
+            return Ok();
         }
 
         //[HttpGet]

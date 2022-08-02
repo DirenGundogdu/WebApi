@@ -35,7 +35,17 @@ namespace WebApi
             });
             services.AddScoped<IProductRepository, ProductRepository>();
 
-            services.AddControllers();
+            services.AddCors( cors =>
+            {
+                cors.AddPolicy("CORSPolicy", opt => {
+                opt.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+                });
+            });
+
+            services.AddControllers().AddNewtonsoftJson(opt =>
+            {
+                opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+            });
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebApi", Version = "v1" });
@@ -52,7 +62,11 @@ namespace WebApi
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebApi v1"));
             }
 
+            app.UseStaticFiles();
+
             app.UseRouting();
+
+            app.UseCors("CORSPolicy");
 
             app.UseAuthorization();
 
